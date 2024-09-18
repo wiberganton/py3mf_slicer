@@ -1,3 +1,3 @@
-# Your Package
+# py3mf_slicer
 
-A brief description of your package.
+Provides functions useful to slice 3mf files

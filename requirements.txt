@@ -1,0 +1,5 @@
+setuptools == 75.1.0
+lib3mf == 2.3.2
+pyvista == 0.44.1
+numpy == 2.1.1
+networkx == 3.3
