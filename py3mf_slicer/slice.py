@@ -70,6 +70,7 @@ def slice_pv_mesh(mesh, layer_height):
     slices = pv.MultiBlock()
     # Slice the mesh at each z-coordinate
     z_floor = math.floor(z_min/layer_height)*layer_height
+    z_floor = max(z_floor, 0)
     z = z_floor+layer_height
     while z < z_max:
         slice = mesh.slice(normal=[0, 0, 1], origin=[0, 0, z])
