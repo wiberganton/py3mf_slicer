@@ -81,7 +81,7 @@ def slice_pv_mesh(mesh, layer_height):
 
 def slice_model(model, layer_height):
     model_sliced = model #copy.deepcopy(model)
-    pv_meshes = get_pyvista_mesh(model_sliced)
+    pv_meshes = get_pyvista_meshes(model_sliced)
     for mesh in pv_meshes:
         slices = slice_pv_mesh(mesh, layer_height)
 
