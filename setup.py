@@ -5,7 +5,11 @@ setup(
     version='0.0.1',
     packages=find_packages(),
     install_requires=[
-        # List your package dependencies here
+        'setuptools',
+        'lib3mf',
+        'pyvista',
+        'numpy',
+        'networkx'
     ],
     entry_points={
         'console_scripts': [
