@@ -1,4 +1,4 @@
-import get_items
+import py3mf_slicer.get_items as get_items
 
 def transform_model(model, item, movement = (0, 0, 0), rotation=(0, 0, 0), scale=(1, 1, 1)):
     meshes = get_items.get_pyvista_meshes(model)
