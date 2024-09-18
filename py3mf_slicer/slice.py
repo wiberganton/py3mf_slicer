@@ -1,6 +1,6 @@
 import lib3mf
 import pyvista as pv
-from py3mf_slicer.get_items import get_pyvista_mesh
+from py3mf_slicer.get_items import get_pyvista_meshes
 from ctypes import c_float, c_uint32
 import numpy as np
 import networkx as nx
