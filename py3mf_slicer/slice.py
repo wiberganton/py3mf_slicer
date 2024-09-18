@@ -4,6 +4,7 @@ from get_items import get_pyvista_mesh
 from ctypes import c_float, c_uint32
 import numpy as np
 import networkx as nx
+import math
 
 def to_lib3mf_position2D(positions):
     lib3mf_positions = []
@@ -68,7 +69,8 @@ def slice_pv_mesh(mesh, layer_height):
     # Create a MultiBlock to store all slices
     slices = pv.MultiBlock()
     # Slice the mesh at each z-coordinate
-    z = z_min+layer_height
+    z_floor = math.floor(z_min/layer_height)*layer_height
+    z = z_floor+layer_height
     while z < z_max:
         slice = mesh.slice(normal=[0, 0, 1], origin=[0, 0, z])
         slices.append(slice)
