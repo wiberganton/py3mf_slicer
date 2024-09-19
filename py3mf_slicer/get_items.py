@@ -62,10 +62,9 @@ def get_pyvista_slices(model):
         for i in range(slicestack.GetSliceCount()):
             slice = slicestack.GetSlice(i)
             vertices = []
-            for j in range(slice.GetVertexCount()):
-                vertex = slice.GetVertices()[j]
-                vertices.append([vertex.Coordinates[0], vertex.Coordinates[1], slicestack.GetSlice(i).GetZTop()])
-            vertices = np.array(vertices)
+            vertices_list = slice.GetVertices()
+            z_top = slicestack.GetSlice(i).GetZTop()
+            vertices = [[vertex.Coordinates[0], vertex.Coordinates[1], z_top] for vertex in vertices_list]
             
             polygons = []
             for k in range(slice.GetPolygonCount()):
@@ -106,3 +105,5 @@ def get_py3mf_from_pyvista(pyvista_meshes):
         ]
         model.AddBuildItem(mesh_object, transform)
     return model
+
+def get_layer_slices(model):
