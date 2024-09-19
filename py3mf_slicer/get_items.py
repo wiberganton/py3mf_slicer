@@ -106,4 +106,3 @@ def get_py3mf_from_pyvista(pyvista_meshes):
         model.AddBuildItem(mesh_object, transform)
     return model
 
-def get_layer_slices(model):
