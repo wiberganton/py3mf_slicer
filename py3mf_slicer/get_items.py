@@ -142,8 +142,6 @@ def get_slices(model):
             positions = np.where(levels[i] == z)[0]
             s = []
             for pos in positions:
-                print("pos: ", pos)
-                print(type(pos.item()))
                 block = pv_model_slices[i][pos.item()] #[pos]
                 s.append(block)
             slice.append(s)
