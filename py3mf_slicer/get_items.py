@@ -35,6 +35,20 @@ def get_bounding_boxes(model):
         boundries.append([max_values.tolist(), min_values.tolist()])
     return boundries
 
+def get_layer_height(model):
+    slice_stack_iterator = model.GetSliceStacks()
+    while slice_stack_iterator.MoveNext():
+        slicestack = slice_stack_iterator.GetCurrentSliceStack()
+        slice_count = slicestack.GetSliceCount()
+        z_min = slicestack.GetSlice(0).GetZTop()
+        z_max = slicestack.GetSlice(slice_count-1).GetZTop()
+        if slice_count > 1:
+            layer_height = (z_max-z_min)/(slice_count-1)
+        else:
+            layer_height = z_min
+        return layer_height
+    return 0
+            
 def get_pyvista_meshes(model):
     pv_meshes = []
     mesh_iterator = model.GetMeshObjects()
@@ -106,3 +120,33 @@ def get_py3mf_from_pyvista(pyvista_meshes):
         model.AddBuildItem(mesh_object, transform)
     return model
 
+def get_slices(model):
+    pv_model_slices = get_pyvista_slices(model)
+    levels = []
+    max_z = 0
+    for pv_model in pv_model_slices:
+        level =[]
+        for slice in pv_model:
+            level.append(slice.GetBounds()[4])
+        np_level = np.array(level)
+        levels.append(np_level)
+        max_z = max(max_z, np.max(np_level))
+
+    layer_height = get_layer_height(model)
+    z = layer_height
+    slices = []
+
+    while z <= max_z:
+        slice = []
+        for i in range(len(pv_model_slices)):
+            positions = np.where(levels[i] == z)[0]
+            s = []
+            for pos in positions:
+                print("pos: ", pos)
+                print(type(pos.item()))
+                block = pv_model_slices[i][pos.item()] #[pos]
+                s.append(block)
+            slice.append(s)
+        slices.append(slice)
+        z += layer_height
+    return slices

@@ -1,0 +1,22 @@
+Metadata-Version: 2.1
+Name: py3mf_slicer
+Version: 0.0.6
+Summary: Functions which aids the process of using and slicing 3mf files
+Home-page: https://github.com/wiberganton/py3mf_slicer
+Author: Anton Wiberg
+Author-email: wiberg.anton@gmail.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: setuptools
+Requires-Dist: lib3mf
+Requires-Dist: pyvista
+Requires-Dist: numpy
+Requires-Dist: networkx
+
+# py3mf_slicer
+
+Provides functions useful to slice 3mf files

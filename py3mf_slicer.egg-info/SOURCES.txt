@@ -1,0 +1,16 @@
+LICENSE
+README.md
+setup.py
+py3mf_slicer/__init__.py
+py3mf_slicer/get_items.py
+py3mf_slicer/load.py
+py3mf_slicer/slice.py
+py3mf_slicer/transform.py
+py3mf_slicer/write.py
+py3mf_slicer.egg-info/PKG-INFO
+py3mf_slicer.egg-info/SOURCES.txt
+py3mf_slicer.egg-info/dependency_links.txt
+py3mf_slicer.egg-info/requires.txt
+py3mf_slicer.egg-info/top_level.txt
+tests/__init__.py
+tests/test_module1.py
