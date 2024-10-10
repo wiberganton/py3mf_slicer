@@ -2,6 +2,7 @@ import lib3mf
 import numpy as np
 import pyvista as pv
 from ctypes import c_float, c_uint32
+import shapely
 
 def to_lib3mf_position2D(positions):
     lib3mf_positions = []
@@ -148,3 +149,46 @@ def get_slices(model):
         slices.append(slice)
         z += layer_height
     return slices
+      
+def get_shapely_slice(model, layer):
+    # Get bounding boxes and z bounds for each slicestack
+    bounding_box = get_bounding_boxes(model)
+    z_bound = np.array([[sublist[0][2], sublist[1][2]] for sublist in bounding_box])
+    # Calculate layer height
+    layer_height = get_layer_height(model)
+    height = layer * layer_height
+    # Initialize slice stack iterator
+    slice_stack_iterator = model.GetSliceStacks()
+    slicestacks = []
+    # Safely traverse the slice stack iterator
+    while slice_stack_iterator.MoveNext():
+        try:
+            slicestack = slice_stack_iterator.GetCurrentSliceStack()
+            slicestacks.append(slicestack)
+        except Exception as e:
+            print(f"Error accessing slice stack: {e}")
+            continue  # Skip to the next slice stack if there's an issue
+    shapely_slice = []
+    # Iterate over all slicestacks
+    for index, slicestack in enumerate(slicestacks):
+        # Calculate the relative height for this slicestack
+        if z_bound[index][1] <= height <= z_bound[index][0]:
+            # Only process slicestacks within bounds
+            stack_layer = int(height - z_bound[index][1])
+            slice = slicestack.GetSlice(stack_layer)
+            vertices_list = slice.GetVertices()
+            # Convert vertex coordinates to a NumPy array (faster than list comprehensions)
+            np_vertices = np.array([[vertex.Coordinates[0], vertex.Coordinates[1]] for vertex in vertices_list])
+            # Use list comprehension to create polygons efficiently
+            polygons = [
+                shapely.Polygon(np_vertices[slice.GetPolygonIndices(k)]) for k in range(slice.GetPolygonCount())
+            ]
+            # Add the polygons to the result for this slicestack
+            if len(polygons) > 1:
+                shapely_slice.append(shapely.MultiPolygon(polygons))
+            else:
+                shapely_slice.append(polygons[0])
+        else:
+            # If the slicestack is out of bounds, append an empty list
+            shapely_slice.append(None)
+    return shapely_slice

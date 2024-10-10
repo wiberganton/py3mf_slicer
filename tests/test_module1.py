@@ -28,10 +28,16 @@ class TestPy3MF(unittest.TestCase):
         
         # Step 3: Get slices
         slices = py3mf_slicer.get_items.get_slices(sliced_model)
-        
+
         # Assert that slices were extracted
         self.assertGreater(len(slices), 0, "No slices were extracted from the model")
 
+        # Step 4: Get shapely slices
+        slices = py3mf_slicer.get_items.get_shapely_slice(sliced_model, 0)
+
+        # Assert that slices were extracted
+        self.assertGreater(len(slices), 0, "No shapely slices were extracted from the model")
+        
         # Vizulise slice
         #py3mf_slicer.visualize.visualize_layer(slices[5])
 

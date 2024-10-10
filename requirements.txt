@@ -3,3 +3,4 @@ lib3mf == 2.3.2
 pyvista == 0.44.1
 numpy == 2.1.1
 networkx == 3.3
+shapely == 2.0.6
