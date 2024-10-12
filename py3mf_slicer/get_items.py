@@ -173,7 +173,7 @@ def get_shapely_slice(model, layer):
         for i in range(len(top_level)):
             if len(second_level[i])>0:
                 interiors = [polygon.exterior for polygon in second_level[i]]
-                polygons.append(Polygon(top_level[i].exterior, interiors))
+                polygons.append(shapely.Polygon(top_level[i].exterior, interiors))
             else:
                 polygons.append(top_level[i])
         return shapely.MultiPolygon(polygons)
