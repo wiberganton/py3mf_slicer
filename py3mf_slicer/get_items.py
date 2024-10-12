@@ -151,6 +151,32 @@ def get_slices(model):
     return slices
       
 def get_shapely_slice(model, layer):
+    def create_hierarchy(polygons):
+        polygons.sort(key=lambda p: p.area, reverse=True)
+        top_level = [polygons[0]]
+        second_level = [[]]
+        for i in range(1,len(polygons)):
+            added = False
+            for ii in range(len(top_level)):
+                if top_level[ii].contains(polygons[i]):
+                    add_to_second_level = True
+                    for iii in range(len(second_level[ii])):
+                        if second_level[ii][iii].contains(polygons[i]):
+                            add_to_second_level = False
+                    if add_to_second_level:
+                        second_level[ii].append(polygons[i])
+                        added = True
+            if not added:
+                top_level.append(polygons[i])
+                second_level.append([])
+        polygons = []
+        for i in range(len(top_level)):
+            if len(second_level[i])>0:
+                interiors = [polygon.exterior for polygon in second_level[i]]
+                polygons.append(Polygon(top_level[i].exterior, interiors))
+            else:
+                polygons.append(top_level[i])
+        return shapely.MultiPolygon(polygons)
     # Get bounding boxes and z bounds for each slicestack
     bounding_box = get_bounding_boxes(model)
     z_bound = np.array([[sublist[0][2], sublist[1][2]] for sublist in bounding_box])
@@ -185,7 +211,7 @@ def get_shapely_slice(model, layer):
             ]
             # Add the polygons to the result for this slicestack
             if len(polygons) > 1:
-                shapely_slice.append(shapely.MultiPolygon(polygons))
+                shapely_slice.append(create_hierarchy(polygons))
             else:
                 shapely_slice.append(polygons[0])
         else:
