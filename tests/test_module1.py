@@ -38,6 +38,12 @@ class TestPy3MF(unittest.TestCase):
         # Assert that slices were extracted
         self.assertGreater(len(slices), 0, "No shapely slices were extracted from the model")
         
+        # Step 5: Test if correct number of slice stacks and mesh objects are returned
+        number_of_mesh_objects = py3mf_slicer.get_items.get_number_of_mesh_objects(sliced_model)
+        number_of_slice_stacks = py3mf_slicer.get_items.get_number_of_slice_stacks(sliced_model)
+        self.assertEqual(number_of_mesh_objects, 3, "Not correct number of mesh objects")
+        self.assertEqual(number_of_slice_stacks, 3, "Not correct number of slice stacks")
+
         # Vizulise slice
         #py3mf_slicer.visualize.visualize_layer(slices[5])
 
