@@ -232,3 +232,12 @@ def get_number_of_slice_stacks(model):
     while slice_stack_iterator.MoveNext():
         nmb_of_slice_stacks = nmb_of_slice_stacks + 1
     return nmb_of_slice_stacks
+
+def get_number_layers(model):
+    number_of_slices = []
+    slice_stack_iterator = model.GetSliceStacks()
+    while slice_stack_iterator.MoveNext():
+        slicestack = slice_stack_iterator.GetCurrentSliceStack()
+        slice_count = slicestack.GetSliceCount()
+        number_of_slices.append(slice_count)
+    return number_of_slices
