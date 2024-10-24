@@ -218,3 +218,17 @@ def get_shapely_slice(model, layer):
             # If the slicestack is out of bounds, append an empty list
             shapely_slice.append(None)
     return shapely_slice
+
+def get_number_of_mesh_objects(model):
+    mesh_iterator = model.GetMeshObjects()
+    nmb_of_meshes = 0
+    while mesh_iterator.MoveNext():
+        nmb_of_meshes = nmb_of_meshes + 1
+    return nmb_of_meshes
+
+def get_number_of_slice_stacks(model):
+    slice_stack_iterator = model.GetSliceStacks()
+    nmb_of_slice_stacks = 0
+    while slice_stack_iterator.MoveNext():
+        nmb_of_slice_stacks = nmb_of_slice_stacks + 1
+    return nmb_of_slice_stacks
