@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: py3mf_slicer
-Version: 0.0.6
+Version: 0.0.1
 Summary: Functions which aids the process of using and slicing 3mf files
 Home-page: https://github.com/wiberganton/py3mf_slicer
 Author: Anton Wiberg
@@ -16,6 +16,7 @@ Requires-Dist: lib3mf
 Requires-Dist: pyvista
 Requires-Dist: numpy
 Requires-Dist: networkx
+Requires-Dist: shapely
 
 # py3mf_slicer
 

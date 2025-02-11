@@ -198,7 +198,7 @@ def get_shapely_slice(model, layer):
     # Iterate over all slicestacks
     for index, slicestack in enumerate(slicestacks):
         # Calculate the relative height for this slicestack
-        if z_bound[index][1] <= height < z_bound[index][0]-layer_height:
+        if z_bound[index][1] <= height <= z_bound[index][0]:
             # Only process slicestacks within bounds
             stack_layer = int(height - z_bound[index][1])
             slice = slicestack.GetSlice(stack_layer)

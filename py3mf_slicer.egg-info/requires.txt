@@ -3,3 +3,4 @@ lib3mf
 pyvista
 numpy
 networkx
+shapely

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='py3mf_slicer',
-    version='0.0.11',
+    version='0.0.1',
     packages=find_packages(),
     install_requires=[
         'setuptools',
