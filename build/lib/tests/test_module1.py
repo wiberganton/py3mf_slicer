@@ -49,6 +49,14 @@ class TestPy3MF(unittest.TestCase):
         # Vizulise slice
         #py3mf_slicer.visualize.visualize_layer(slices[5])
 
+        # Test get shapely slice
+        exported_counts = [0] * len(number_of_layers)
+        for i in range(max(number_of_layers)):
+            slice = py3mf_slicer.get_items.get_shapely_slice(sliced_model, i)
+            for i, value in enumerate(slice):
+                if value is not None:
+                    exported_counts[i] += 1  # Increment count for the column if value is not None
+        self.assertEqual(exported_counts, number_of_layers, "Not correct number of exported shapely slices")
 
         
 if __name__ == '__main__':
