@@ -5,6 +5,9 @@ import py3mf_slicer.slice
 import py3mf_slicer.get_items
 import py3mf_slicer.visualize
 
+import pyvista as pv
+
+
 class TestPy3MF(unittest.TestCase):
 
     def setUp(self):
@@ -34,7 +37,6 @@ class TestPy3MF(unittest.TestCase):
 
         # Step 4: Get shapely slices
         slices = py3mf_slicer.get_items.get_shapely_slice(sliced_model, 0)
-
         # Assert that slices were extracted
         self.assertGreater(len(slices), 0, "No shapely slices were extracted from the model")
         
@@ -58,6 +60,11 @@ class TestPy3MF(unittest.TestCase):
                     exported_counts[i] += 1  # Increment count for the column if value is not None
         self.assertEqual(exported_counts, number_of_layers, "Not correct number of exported shapely slices")
 
+        # Test create from pyvista
+        cube = pv.Cube(center=(0,0,0), x_length=10, y_length=10, z_length=10)
+        sphere = pv.Cylinder(center=(0,0,0), radius=5, height=5)
+        model = py3mf_slicer.get_items.get_py3mf_from_pyvista([cube, sphere])
+        self.assertIsNotNone(sliced_model, "Getting model from pyvista objects failed")
         
 if __name__ == '__main__':
     unittest.main()

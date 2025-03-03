@@ -101,16 +101,30 @@ def get_pyvista_slices(model):
 def get_py3mf_from_pyvista(pyvista_meshes):
     wrapper = lib3mf.get_wrapper()
     model = wrapper.CreateModel()
+
     for mesh in pyvista_meshes:
+        mesh = mesh.triangulate()  # 🔹 Ensure all faces are triangles
         mesh_object = model.AddMeshObject()
         vertices = mesh.points
         faces = mesh.faces
+        
         # Add vertices to the lib3mf mesh object
         for vertex in vertices:
             mesh_object.AddVertex(lib3mf.Position((c_float * 3)(vertex[0], vertex[1], vertex[2])))
+
         # Add triangles to the lib3mf mesh object
-        for i in range(0,len(faces),4):
-            mesh_object.AddTriangle(lib3mf.Triangle((c_uint32 * 3)(faces[i+1], faces[i+2], faces[i+3])))
+        i = 0
+        while i < len(faces):
+            n = faces[i]  # Number of vertices in the face
+            if n == 3:  # Triangle (expected now that we triangulated)
+                v1, v2, v3 = faces[i+1], faces[i+2], faces[i+3]
+                if v1 != v2 and v2 != v3 and v1 != v3:  # Avoid degenerate triangles
+                    mesh_object.AddTriangle(lib3mf.Triangle((c_uint32 * 3)(v1, v2, v3)))
+            else:
+                raise ValueError(f"Unexpected face with {n} vertices (should be 3 after triangulation)")
+            i += n + 1  # Move to the next face
+        
+        # Apply identity transformation
         transform = lib3mf.Transform()
         transform.m_Fields = [
             [1.0, 0.0, 0.0],
@@ -119,6 +133,7 @@ def get_py3mf_from_pyvista(pyvista_meshes):
             [0.0, 0.0, 0.0]
         ]
         model.AddBuildItem(mesh_object, transform)
+
     return model
 
 def get_slices(model):
