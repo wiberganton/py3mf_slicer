@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: py3mf_slicer
-Version: 0.0.2
+Version: 0.0.3
 Summary: Functions which aids the process of using and slicing 3mf files
 Home-page: https://github.com/wiberganton/py3mf_slicer
 Author: Anton Wiberg
@@ -21,3 +21,10 @@ Requires-Dist: shapely
 # py3mf_slicer
 
 Provides functions useful to slice 3mf files
+
+
+# To package
+- Delete old build in \dist folder
+- Update version in setup file
+- run "python setup.py sdist bdist_wheel"
+- upload to pip with "twine upload dist/*"
