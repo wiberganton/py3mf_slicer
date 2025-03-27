@@ -49,7 +49,17 @@ def get_layer_height(model):
             layer_height = z_min
         return layer_height
     return 0
-            
+
+def get_layer_z_height(model, layer_nmb):
+    slice_stack_iterator = model.GetSliceStacks()
+    while slice_stack_iterator.MoveNext():
+        slicestack = slice_stack_iterator.GetCurrentSliceStack()
+        slice_count = slicestack.GetSliceCount()
+        if layer_nmb < slice_count:
+            z_height = slicestack.GetSlice(layer_nmb).GetZTop()
+            return z_height
+    return 0
+
 def get_pyvista_meshes(model):
     pv_meshes = []
     mesh_iterator = model.GetMeshObjects()

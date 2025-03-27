@@ -65,6 +65,10 @@ class TestPy3MF(unittest.TestCase):
         sphere = pv.Cylinder(center=(0,0,0), radius=5, height=5)
         model = py3mf_slicer.get_items.get_py3mf_from_pyvista([cube, sphere])
         self.assertIsNotNone(sliced_model, "Getting model from pyvista objects failed")
+
+        # Test get z height for layer
+        slice_heigth = py3mf_slicer.get_items.get_layer_z_height(sliced_model, 0)
+        self.assertIsNotNone(slice_heigth, "Getting slice z height failed")
         
 if __name__ == '__main__':
     unittest.main()
