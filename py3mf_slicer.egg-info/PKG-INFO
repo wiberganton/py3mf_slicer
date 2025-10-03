@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.4
 Name: py3mf_slicer
 Version: 0.0.4
 Summary: Functions which aids the process of using and slicing 3mf files
@@ -17,6 +17,16 @@ Requires-Dist: pyvista
 Requires-Dist: numpy
 Requires-Dist: networkx
 Requires-Dist: shapely
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
 
 # py3mf_slicer
 

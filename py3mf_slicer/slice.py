@@ -84,7 +84,6 @@ def slice_model(model, layer_height):
     pv_meshes = get_pyvista_meshes(model_sliced)
     for mesh in pv_meshes:
         slices = slice_pv_mesh(mesh, layer_height)
-
         z_min = slices[0].points[0][2]
         z_max = slices[-1].points[0][2]
 

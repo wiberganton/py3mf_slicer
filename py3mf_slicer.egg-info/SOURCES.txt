@@ -14,5 +14,5 @@ py3mf_slicer.egg-info/dependency_links.txt
 py3mf_slicer.egg-info/requires.txt
 py3mf_slicer.egg-info/top_level.txt
 tests/__init__.py
-tests/dev1.py
+tests/test_complex_geometry.py
 tests/test_module1.py

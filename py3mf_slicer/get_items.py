@@ -1,8 +1,14 @@
+
+from __future__ import annotations
+
 import lib3mf
 import numpy as np
 import pyvista as pv
 from ctypes import c_float, c_uint32
 import shapely
+from typing import Iterable, List, Tuple, Optional, Callable, Union, Dict
+from shapely.geometry import Polygon, MultiPolygon
+from shapely.ops import unary_union
 
 def to_lib3mf_position2D(positions):
     lib3mf_positions = []
@@ -175,73 +181,145 @@ def get_slices(model):
         z += layer_height
     return slices
       
-def get_shapely_slice(model, layer):
+def get_shapely_slice(model, layer, *, eps=1e-6):
+    """
+    Build a per-slicestack shapely geometry (Polygon/MultiPolygon) at the given layer index.
+    Returns a list aligned with slicestacks; entries are None when out of bounds.
+    """
+
     def create_hierarchy(polygons):
+        # Sort big -> small so outers come before inners
+        polygons = [p for p in polygons if p.is_valid and p.area > 0.0]
+        if not polygons:
+            return None
         polygons.sort(key=lambda p: p.area, reverse=True)
+
         top_level = [polygons[0]]
-        second_level = [[]]
-        for i in range(1,len(polygons)):
+        second_level = [[]]  # holes candidates per top poly
+
+        for i in range(1, len(polygons)):
+            p = polygons[i]
             added = False
-            for ii in range(len(top_level)):
-                if top_level[ii].contains(polygons[i]):
+            for ii, outer in enumerate(top_level):
+                # Use 'covers' instead of 'contains' to tolerate touching boundaries
+                if outer.buffer(eps).covers(p):
+                    # only add as a hole if it isn't inside an existing hole
                     add_to_second_level = True
-                    for iii in range(len(second_level[ii])):
-                        if second_level[ii][iii].contains(polygons[i]):
+                    for hole_poly in second_level[ii]:
+                        if hole_poly.buffer(eps).covers(p):
                             add_to_second_level = False
+                            break
                     if add_to_second_level:
-                        second_level[ii].append(polygons[i])
+                        second_level[ii].append(p)
                         added = True
+                        break
             if not added:
-                top_level.append(polygons[i])
+                top_level.append(p)
                 second_level.append([])
-        polygons = []
-        for i in range(len(top_level)):
-            if len(second_level[i])>0:
-                interiors = [polygon.exterior for polygon in second_level[i]]
-                polygons.append(shapely.Polygon(top_level[i].exterior, interiors))
+
+        out = []
+        for outer, holes in zip(top_level, second_level):
+            if holes:
+                interiors = [h.exterior for h in holes]
+                out.append(Polygon(outer.exterior, interiors))
             else:
-                polygons.append(top_level[i])
-        return shapely.MultiPolygon(polygons)
-    # Get bounding boxes and z bounds for each slicestack
+                out.append(outer)
+        if len(out) == 1:
+            return out[0]
+        return MultiPolygon(out)
+
+    # ---- geometry + layer bookkeeping ---------------------------------------
+    # Bounding boxes: assumed [(min_xyz, max_xyz), ...]
     bounding_box = get_bounding_boxes(model)
-    z_bound = np.array([[sublist[0][2], sublist[1][2]] for sublist in bounding_box])
-    # Calculate layer height
-    layer_height = get_layer_height(model)
+    # z_bound[i] = (zmin, zmax)
+    z_bound = np.array([(bb[0][2], bb[1][2]) for bb in bounding_box], dtype=float)
+
+    # layer height & target absolute height of this layer
+    layer_height = float(get_layer_height(model))
+    if layer_height <= 0:
+        raise ValueError("get_layer_height(model) must be > 0")
     height = layer * layer_height
-    # Initialize slice stack iterator
+
+    # Collect slicestacks safely
     slice_stack_iterator = model.GetSliceStacks()
     slicestacks = []
-    # Safely traverse the slice stack iterator
     while slice_stack_iterator.MoveNext():
         try:
-            slicestack = slice_stack_iterator.GetCurrentSliceStack()
-            slicestacks.append(slicestack)
+            slicestacks.append(slice_stack_iterator.GetCurrentSliceStack())
         except Exception as e:
             print(f"Error accessing slice stack: {e}")
-            continue  # Skip to the next slice stack if there's an issue
+
     shapely_slice = []
-    # Iterate over all slicestacks
+
     for index, slicestack in enumerate(slicestacks):
-        # Calculate the relative height for this slicestack
-        if z_bound[index][1] <= height < z_bound[index][0]-layer_height:
-            # Only process slicestacks within bounds
-            stack_layer = int(height - z_bound[index][1])
-            slice = slicestack.GetSlice(stack_layer)
-            vertices_list = slice.GetVertices()
-            # Convert vertex coordinates to a NumPy array (faster than list comprehensions)
-            np_vertices = np.array([[vertex.Coordinates[0], vertex.Coordinates[1]] for vertex in vertices_list])
-            # Use list comprehension to create polygons efficiently
-            polygons = [
-                shapely.Polygon(np_vertices[slice.GetPolygonIndices(k)]) for k in range(slice.GetPolygonCount())
-            ]
-            # Add the polygons to the result for this slicestack
-            if len(polygons) > 1:
-                shapely_slice.append(create_hierarchy(polygons))
-            else:
-                shapely_slice.append(polygons[0])
+        zmin, zmax = z_bound[index]
+        # Normalize ordering (just in case)
+        if zmin > zmax:
+            zmin, zmax = zmax, zmin
+
+        # Is this height within this stack's vertical extent?
+        if (zmin - eps) <= height <= (zmax + eps):
+            # Compute the integer layer index inside this stack
+            raw = (height - zmin) / layer_height
+            stack_layer = int(round(raw))
+
+            # Clamp to valid slice index range
+            try:
+                slice_count = int(slicestack.GetSliceCount())
+            except Exception:
+                # If API doesn't provide it, we’ll try/except per access below
+                slice_count = None
+
+            if slice_count is not None:
+                if stack_layer < 0 or stack_layer >= slice_count:
+                    shapely_slice.append(None)
+                    continue
+
+            try:
+                slc = slicestack.GetSlice(stack_layer)
+            except Exception:
+                shapely_slice.append(None)
+                continue
+
+            vertices_list = slc.GetVertices()
+            if not vertices_list:
+                shapely_slice.append(None)
+                continue
+
+            # Build numpy of (x, y); we’re slicing a horizontal plane
+            np_vertices = np.array(
+                [[v.Coordinates[0], v.Coordinates[1]] for v in vertices_list],
+                dtype=float
+            )
+
+            # Construct polygons; filter degenerate rings
+            polys = []
+            poly_count = slc.GetPolygonCount()
+            for k in range(poly_count):
+                idx = slc.GetPolygonIndices(k)
+                if idx is None or len(idx) < 3:
+                    continue
+                ring = np_vertices[np.asarray(idx, dtype=int)]
+                # Remove consecutive duplicates
+                if len(ring) >= 2 and np.allclose(ring[0], ring[-1]):
+                    # Shapely doesn't require explicit closure; ok either way
+                    pass
+                # Skip degenerate polygons (zero area / tiny)
+                poly = Polygon(ring)
+                if not poly.is_valid or poly.area <= eps:
+                    continue
+                polys.append(poly)
+
+            if not polys:
+                shapely_slice.append(None)
+                continue
+
+            # If multiple polygons, build hierarchy (holes) if needed
+            geom = polys[0] if len(polys) == 1 else create_hierarchy(polys)
+            shapely_slice.append(geom)
         else:
-            # If the slicestack is out of bounds, append an empty list
             shapely_slice.append(None)
+
     return shapely_slice
 
 def get_number_of_mesh_objects(model):
